@@ -1,2 +1,2 @@
 # PROJECTS
-ALL MY PROJECTS OF DIFFERENT LANGUAGES
+The projects which I made from basic to advanced will be in this REPO.
