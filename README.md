@@ -1,2 +1,2 @@
 # PROJECTS
-The projects which I made from basic to advanced will be in this REPO.
+All the projects I have created or plan to create in the future will be stored in this repository.
