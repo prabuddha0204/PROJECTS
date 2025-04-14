@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link href="https://fonts.googleapis.com/css2?family=Chivo&family=Roboto&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&family=Montserrat:wght@500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Source+Sans+Pro:wght@400;600&display=swap" rel="stylesheet">
+
+
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Curie Temperature Alarm Project</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+/* Fonts already assumed to be Chivo and Roboto from previous setup */
+
+body {
+  font-family: 'Roboto', sans-serif;
+  background: linear-gradient(to bottom, #111827, #0f172a); /* subtle gradient */
+  color: #ffffff;
+  margin: 0;
+  padding: 20px;
+}
+h1 {
+  font-family: 'Montserrat', sans-serif; /* Heading font */
+  font-size: 2.5em; /* Increase size for the heading */
+  color: white;
+  text-align: center;
+  margin-top: 20px; /* Add margin to top */
+  margin-bottom: 20px; /* Space between heading and other elements */
+}
+
+p {
+  font-size: 1.2em;  /* Larger text size */
+  line-height: 1.4;  /* Increased line height for readability */
+}
+
+/* For the "How to Use" section heading */
+h2 {
+  font-family: 'Montserrat', sans-serif; /* Modern, clean look */
+  font-size: 2em;
+  color: rgb(69, 204, 62);
+  text-align: center;
+  margin-top: 20px;
+}
+
+/* For the paragraphs and list items in "How to Use" */
+p, ol {
+  font-family: 'Lato', sans-serif; /* Clean and readable */
+  font-size: 1.1em;
+  line-height: 1.6;
+  color: #ffffff;
+  margin-bottom: 20px;
+}
+
+ol {
+  padding-left: 20px;
+}
+
+li {
+  margin-bottom: 15px;
+}
+
+
+.card {
+  background: #1f2937;
+  border-radius: 16px;
+  padding: 20px;
+  margin: 20px auto;
+  max-width: 900px;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+button {
+  background-color: #f97316;
+  color: white;
+  padding: 10px 20px;
+  font-size: 1em;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  text-transform: uppercase;
+  font-weight: bold;
+  transition: box-shadow 0.3s ease;
+}
+
+button:hover {
+  background-color: #ea580c;
+  box-shadow: 0 0 10px #f97316aa;
+}
+
+select {
+  background-color: #1f2937;
+  color: white;
+  padding: 6px 30px 6px 12px;
+  border: 2px solid #4d5851;
+  border-radius: 6px;
+  font-family: 'Roboto', sans-serif;
+  font-size: 0.95em;
+  text-transform: uppercase;
+  appearance: none;
+  cursor: pointer;
+  background-image: url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath fill='%23ffffff' d='M6 8L0 0h12L6 8z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  background-size: 12px 8px;
+  transition: box-shadow 0.3s ease;
+}
+
+select:hover {
+  box-shadow: 0 0 10px #f1f5f3aa;
+}
+
+ul {
+  padding-left: 20px;
+}
+
+.simulation-result {
+  color: #16a34a;
+  font-weight: bold;
+  margin-top: 10px;
+  text-align: center;
+  font-size: 1.2em;
+}
+
+.animation {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  flex-direction: column;
+  margin-top: 20px;
+  gap: 10px;
+  position: relative;
+  height: 300px;
+}
+
+.drop-zone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: auto;
+}
+
+.magnet {
+  width: 60px;
+  height: 20px;
+  background-color: #6b7280; /* steel gray */
+  border-radius: 4px;
+  margin-bottom: 4px;
+  position: relative;
+  z-index: 2;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.wire {
+  width: 2px;
+  height: 60px;
+  background-color: #d1d5db; /* lighter gray */
+  z-index: 1;
+  box-shadow: 0 0 4px #9ca3af;
+}
+
+.weight {
+  width: 30px;
+  height: 30px;
+  background-color: #9ca3af;
+  border-radius: 50%;
+  transition: transform 1s ease-in-out;
+  box-shadow: 0 0 6px #f97316;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.candle {
+  width: 40px;
+  height: 60px;
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #ff6600;
+  border-radius: 10px;
+}
+
+.flame {
+  position: absolute;
+  top: -20px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 20px;
+  height: 30px;
+  background: radial-gradient(circle at 50% 30%, yellow 0%, orange 60%, red 100%);
+  border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+  animation: flicker 0.2s infinite;
+  z-index: 0;
+}
+
+@keyframes flicker {
+  0% { transform: translateX(-50%) scale(1); }
+  50% { transform: translateX(-50%) scale(1.05); }
+  100% { transform: translateX(-50%) scale(1); }
+}
+
+.dropped {
+  transform: translateY(100px);
+}
+
+.temp-control {
+  text-align: center;
+  margin-top: 20px;
+}
+
+.temp-display {
+  font-size: 1.1em;
+  margin-top: 10px;
+}
+
+input[type=range] {
+  width: 300px;
+}
+
+canvas {
+  margin-top: 20px;
+  background: #f1f5f9;
+  border-radius: 8px;
+}
+  </style>
+</head>
+<body>
+  <h1>CURIE TEMPERATURE ALARM PROJECT</h1>
+
+  <div class="card">
+    <h2>📚 THEORY </h2>
+    <p>The Curie temperature is a critical point in the study of ferromagnetic materials, marking the temperature at which the material loses its permanent magnetic properties and becomes paramagnetic. This occurs because, at temperatures above the Curie point, the thermal energy overcomes the forces holding the magnetic moments of the atoms in alignment, causing them to become randomly oriented.</p>
+    
+    <p>Materials like iron, nickel, and cobalt exhibit ferromagnetism below their Curie temperatures. Once they reach or exceed the Curie temperature, their magnetization is lost, and they can no longer generate a magnetic field. This phenomenon is fundamental to many applications in electronics, magnetic storage, and even in the design of magnets for industrial uses.</p>
+    <div class="card" style="margin-top: 30px;">
+        <h2>🧮 CURIE TEMPERATURE OF MATERIALS</h2>
+        <table style="width: 100%; border-collapse: collapse; text-align: center; color: #facc15;">
+          <thead>
+            <tr style="background-color: #1c1917; color: #f97316;">
+              <th style="padding: 10px; border: 1px solid #334155;">Material</th>
+              <th style="padding: 10px; border: 1px solid #334155;">Curie Temperature (°C)</th>
+            </tr>
+          </thead>
+          <tbody>
+                <tr>
+                  <td style="padding: 10px; border: 1px solid #334155;">Nickel</td>
+                  <td style="padding: 10px; border: 1px solid #334155;">358</td>
+                </tr>
+                <tr>
+                  <td style="padding: 10px; border: 1px solid #334155;">Aluminum</td>
+                  <td style="padding: 10px; border: 1px solid #334155;">660</td>
+                </tr>
+                <tr>
+                  <td style="padding: 10px; border: 1px solid #334155;">Steel</td>
+                  <td style="padding: 10px; border: 1px solid #334155;">750</td>
+                </tr>
+                <tr>
+                  <td style="padding: 10px; border: 1px solid #334155;">Iron</td>
+                  <td style="padding: 10px; border: 1px solid #334155;">770</td>
+                </tr>
+                <tr>
+                  <td style="padding: 10px; border: 1px solid #334155;">Copper</td>
+                  <td style="padding: 10px; border: 1px solid #334155;">1085</td>
+                </tr>
+              </tbody>
+        </table>
+      </div><br><br>
+      <!-- How to Use Section -->
+<h2>📝 HOW TO USE</h2>
+<p>This simulation demonstrates how different materials lose their magnetic properties when heated beyond their Curie temperature. Follow these steps to explore:</p>
+
+<ol style="padding-left: 20px;">
+  <li style="margin-bottom: 15px;"><strong>Choose a Material:</strong> From the dropdown menu, select a material (Nickel, Iron, Steel, Copper, or Aluminum). Each material has a unique Curie temperature.</li>
+  <li style="margin-bottom: 15px;"><strong>Adjust the Temperature:</strong> Use the temperature slider to manually increase the temperature of the material, or click "Start Heating" to simulate automatic heating. As the temperature rises, observe the material's behavior.</li>
+  <li style="margin-bottom: 15px;"><strong>Watch the Magnet:</strong> As the temperature approaches the Curie point, the material will lose its ability to magnetize the magnet. The weight will drop once the Curie temperature is exceeded.</li>
+  <li><strong>Experiment:</strong> Try heating different materials and compare their behavior at various temperatures. Can you identify the temperature at which each material loses its magnetism?</li>
+</ol>
+
+<p>Once you reach the Curie temperature, the material's magnetism will disappear, and the weight will fall. This demonstrates how temperature impacts the magnetic properties of materials!</p>
+<br>
+      <h2>🧪 SIMULATION</h2>
+    <p>In this experiment, we’ll simulate heating a ferromagnetic material (represented by a wire) and observe how its behavior changes as it reaches the Curie temperature. Watch as the material transitions from a magnetically active state to a non-magnetic one.</p>
+    <div style="text-align:center;">
+      <button onclick="startHeating()">🔥 Start Heating</button>
+      <button id="toggleBtn" onclick="toggleHeating()">⏹️ Stop Heating</button>
+
+      <div class="temp-control">
+        <label for="wireSelect">CHOOSE WIRE:</label>
+        <select id="wireSelect" onchange="changeWire(this.value)">
+            <option value="nickel">Nickel (358°C)</option>
+            <option value="aluminum">Aluminum (660°C)</option>
+            <option value="steel">Steel (750°C)</option>
+            <option value="iron">Iron (770°C)</option>
+            <option value="copper">Copper (1085°C)</option>
+          </select>
+                  
+        <br><br>
+        <input type="range" min="0" max="1200" value="25" id="tempSlider" oninput="manualTempControl(this.value)" />
+        <div id="temperature" class="temp-display">🌡️ Temperature: 25°C</div>
+      </div>
+
+      <div class="animation">
+        <div class="drop-zone">
+          <div class="magnet"></div>
+          <div class="wire"></div>
+          <div id="weight" class="weight"></div>
+        </div>
+        <div class="candle">
+          <div class="flame"></div>
+        </div>
+      </div>
+
+      <div id="result" class="simulation-result"></div>
+      <div id="curieBox" style="display:none; margin-top: 10px; font-weight: bold; color: #2563eb; text-align: center; font-size: 1.1em;"></div>
+    </div>
+   
+      
+
+    <canvas id="tempGraph" width="600" height="300"></canvas>
+  </div>
+
+  <script>
+    function updateGraph(time, temp) {
+  tempChart.data.labels.push(time);
+  tempChart.data.datasets[0].data.push(temp);
+
+  // Update annotation line with wire name and temp
+  tempChart.options.plugins.annotation.annotations.curieLine.value = curieTemps[currentWire];
+  tempChart.options.plugins.annotation.annotations.curieLine.label.content = `${capitalize(currentWire)} Curie Temp (${curieTemps[currentWire]}°C)`;
+
+  tempChart.update();
+}
+
+    let currentTemp = 25;
+    let currentWire = 'nickel';
+    let heating = false;
+    let heatingInterval = null;
+    const curieTemps = { 
+      nickel: 358, 
+      iron: 770, 
+      steel: 750, 
+      copper: 1085, 
+      aluminum: 660 
+    };
+    let dropTempRecorded = false;
+    let graphTime = 0;
+
+    // Chart.js setup
+    const ctx = document.getElementById('tempGraph').getContext('2d');
+    const tempChart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: [],
+        datasets: [{
+          label: 'Temperature (°C)',
+          data: [],
+          borderColor: '#f97316',
+          backgroundColor: 'rgba(249, 115, 22, 0.2)',
+          fill: true,
+          tension: 0.2
+        }]
+      },
+      options: {
+        scales: {
+          x: { title: { display: true, text: 'Time (s)' } },
+          y: { title: { display: true, text: 'Temperature (°C)' }, min: 0, max: 1200 }
+        }
+      }
+    });
+
+    function updateTemperatureDisplay(temp) {
+      document.getElementById("temperature").innerHTML = `🌡️ Temperature: ${temp}°C`;
+      document.getElementById("tempSlider").value = temp;
+    }
+
+    function checkCuriePoint(temp) {
+      const weight = document.getElementById("weight");
+      const result = document.getElementById("result");
+      const curieTemp = curieTemps[currentWire];
+
+      if (temp >= curieTemp) {
+        weight.classList.add("dropped");
+        if (!dropTempRecorded && temp < curieTemp + 10) {
+          result.innerHTML = `🔔 ${capitalize(currentWire)} wire lost magnetism at ${curieTemp}°C!`;
+          dropTempRecorded = true;
+        }
+      } else {
+        weight.classList.remove("dropped");
+        result.innerHTML = "";
+        dropTempRecorded = false;
+      }
+    }
+
+    function startHeating() {
+      if (heating) return;
+      heating = true;
+      heatingInterval = setInterval(() => {
+        if (currentTemp < 1200) {
+          currentTemp += 5;
+          graphTime += 1;
+          updateTemperatureDisplay(currentTemp);
+          checkCuriePoint(currentTemp);
+          updateGraph(graphTime, currentTemp);
+        } else {
+          stopHeating();
+        }
+      }, 500);
+    }
+
+    function toggleHeating() {
+      if (heating) {
+        stopHeating();
+        document.getElementById("toggleBtn").innerText = "▶️ Continue Heating";
+      } else {
+        startHeating();
+        document.getElementById("toggleBtn").innerText = "⏹️ Stop Heating";
+      }
+    }
+
+    function stopHeating() {
+      clearInterval(heatingInterval);
+      heating = false;
+    }
+
+    function manualTempControl(value) {
+      stopHeating();
+      document.getElementById("toggleBtn").innerText = "▶️ Continue Heating";
+      currentTemp = parseInt(value);
+      updateTemperatureDisplay(currentTemp);
+      checkCuriePoint(currentTemp);
+      graphTime += 1;
+      updateGraph(graphTime, currentTemp);
+    }
+
+    function changeWire(wire) {
+      currentWire = wire;
+      currentTemp = 25;
+      dropTempRecorded = false;
+      updateTemperatureDisplay(currentTemp);
+      checkCuriePoint(currentTemp);
+      tempChart.data.labels = [];
+      tempChart.data.datasets[0].data = [];
+      tempChart.update();
+      graphTime = 0;
+    }
+
+    function updateGraph(time, temp) {
+      tempChart.data.labels.push(time);
+      tempChart.data.datasets[0].data.push(temp);
+      tempChart.update();
+    }
+
+    function capitalize(str) {
+      return str.charAt(0).toUpperCase() + str.slice(1);
+    }
+  </script>
+</body>
+</html>
